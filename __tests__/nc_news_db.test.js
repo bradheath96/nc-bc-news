@@ -3,6 +3,8 @@ const app = require("../app");
 const db = require("../db/connection.js");
 const seed = require("../db/seeds/seed.js");
 const data = require("../db/data/test-data");
+const endpoints = require("../endpoints.json");
+
 
 beforeEach(() => {
 	return seed(data);
@@ -23,6 +25,17 @@ describe("All bad URLs", () => {
 	});
 });
 
+describe("GET api/", () => {
+	it("status: 200, should respond with all the available endpoints of the API", () => {
+		return request(app)
+			.get("/api")
+			.expect(200)
+			.then(({ body }) => {
+				expect(body).toEqual(endpoints)
+			})
+	})
+})
+
 describe("GET api/topics", () => {
 	it("status: 200, should respond with an array of topics", () => {
 		return request(app)
@@ -31,7 +44,7 @@ describe("GET api/topics", () => {
 			.then(({ body }) => {
 				const topicsArray = body;
 				topicsArray.forEach((topic) => {
-					expect(topic).toEqual({
+					expect(topic).toStrictEqual({
 						slug: expect.any(String),
 						description: expect.any(String),
 					});
