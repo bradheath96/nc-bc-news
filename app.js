@@ -1,17 +1,18 @@
 const express = require("express");
 
-const { getTopics } = require("./controllers/nc_news.controller");
+const { getTopics, getAPI } = require("./controllers/nc_news.controller");
 
-const {
-	serverErrorsHandler,
-	handleNotFound,
-} = require("./controllers/error.controller");
+const { serverErrorsHandler } = require("./controllers/error.controller");
 
 const app = express();
 
+
+app.get("/api", getAPI)
 app.get("/api/topics", getTopics);
 
-app.use(handleNotFound);
+app.all("*", (req, res) => {
+    res.status(404).send({message: "endpoint not found"})
+})
 app.use(serverErrorsHandler);
 
 module.exports = app;
