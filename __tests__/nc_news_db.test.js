@@ -5,7 +5,6 @@ const seed = require("../db/seeds/seed.js");
 const data = require("../db/data/test-data");
 const endpoints = require("../endpoints.json");
 
-
 beforeEach(() => {
 	return seed(data);
 });
@@ -25,18 +24,18 @@ describe("All bad URLs", () => {
 	});
 });
 
-describe("GET api/", () => {
+describe("GET /api/", () => {
 	it("status: 200, should respond with all the available endpoints of the API", () => {
 		return request(app)
 			.get("/api")
 			.expect(200)
 			.then(({ body }) => {
-				expect(body).toEqual(endpoints)
-			})
-	})
-})
+				expect(body).toEqual(endpoints);
+			});
+	});
+});
 
-describe("GET api/topics", () => {
+describe("GET /api/topics", () => {
 	it("status: 200, should respond with an array of topics", () => {
 		return request(app)
 			.get("/api/topics")
@@ -49,6 +48,35 @@ describe("GET api/topics", () => {
 						description: expect.any(String),
 					});
 				});
+			});
+	});
+});
+
+describe("GET /api/articles/:articles_id", () => {
+	it("status: 200, should respond with the requested article", () => {
+		return request(app)
+			.get("/api/articles/1")
+			.expect(200)
+			.then(({ body }) => {
+				expect(body).toEqual({
+					article_id: expect.any(Number),
+					title: expect.any(String),
+					topic: expect.any(String),
+					author: expect.any(String),
+					body: expect.any(String),
+					created_at: expect.any(String),
+					votes: expect.any(Number),
+					article_img_url: expect.any(String),
+				});
+			});
+	});
+
+	it("status: 404, should respond with a 404 message when passed a valid but none existent article ID", () => {
+		return request(app)
+			.get("/api/articles/808")
+			.expect(404)
+			.then(({ body }) => {
+				expect(body.message).toBe("no article found under article_id 808");
 			});
 	});
 });
