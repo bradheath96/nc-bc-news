@@ -14,6 +14,27 @@ function selectArticleById(articleId) {
 		});
 }
 
+function fetchCommentsByArticleId(articleId) {
+	return db
+		.query(
+			`SELECT comment_id, votes, created_at, author, body, article_id
+        FROM comments
+        WHERE article_id = $1
+        ORDER BY created_at DESC
+        `,
+			[articleId]
+		)
+		.then((articles) => {
+			if (articles.rows.length === 0) {
+				return Promise.reject({
+					status: 404,
+					message: `no article found under article_id ${articleId}`,
+				});
+			}
+			return articles.rows;
+		});
+}
+
 function selectTopics() {
 	return db.query(`SELECT slug, description FROM topics`).then((topics) => {
 		return topics.rows;
@@ -23,16 +44,21 @@ function selectTopics() {
 function fetchArticles() {
 	return db
 		.query(
-            `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.article_img_url, articles.votes,
+			`SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.article_img_url, articles.votes,
             COUNT(comments.comment_id)::INT AS comment_count 
             FROM articles LEFT JOIN comments 
             ON articles.article_id = comments.article_id
             GROUP BY articles.article_id
             ORDER BY articles.created_at DESC;`
 		)
-        .then((articles) => {
-            return articles.rows
+		.then((articles) => {
+			return articles.rows;
 		});
 }
 
-module.exports = { selectTopics, selectArticleById, fetchArticles };
+module.exports = {
+	selectTopics,
+	selectArticleById,
+	fetchArticles,
+	fetchCommentsByArticleId,
+};

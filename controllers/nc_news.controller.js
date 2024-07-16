@@ -2,6 +2,7 @@ const {
 	selectTopics,
 	selectArticleById,
 	fetchArticles,
+	fetchCommentsByArticleId,
 } = require("../model/nc_news.models");
 const endpoints = require("../endpoints.json");
 
@@ -17,6 +18,18 @@ function getArticleById(request, response, next) {
 	return selectArticleById(articleId)
 		.then((article) => {
 			response.status(200).send(article[0]);
+		})
+		.catch(next);
+}
+
+function getCommentsByArticleId(request, response, next) {
+	const articleId = Number(request.params.article_id);
+	if (isNaN(articleId)) {
+		return response.status(400).send({ message: "not a valid article ID" });
+	}
+	return fetchCommentsByArticleId(articleId)
+		.then((comments) => {
+			response.status(200).send({ comments: comments });
 		})
 		.catch(next);
 }
@@ -39,4 +52,10 @@ function getTopics(request, response) {
 		});
 }
 
-module.exports = { getTopics, getAPI, getArticleById, getArticles };
+module.exports = {
+	getTopics,
+	getAPI,
+	getArticleById,
+	getArticles,
+	getCommentsByArticleId,
+};
