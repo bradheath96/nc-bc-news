@@ -142,6 +142,109 @@ describe("GET /api/articles/:articles_id/comments", () => {
 	});
 });
 
+describe("POST /api/articles/:article_id/comments", () => {
+	it("status: 201, should respond with the posted comment", () => {
+		const newComment = {
+			username: "rogersop",
+			body: "This is a test comment lol",
+		};
+		return request(app)
+			.post("/api/articles/1/comments")
+			.send(newComment)
+			.expect(201)
+			.then(({ body }) => {
+				const returnedComment = body;
+				expect(returnedComment).toMatchObject({
+					comment_id: expect.any(Number),
+					author: "rogersop",
+					body: "This is a test comment lol",
+				});
+			});
+	});
+
+	it("status: 400, should respond with a 400 message when passed an invalid article_id", () => {
+		const newComment = {
+			username: "bradheath96",
+			body: "this is a test comment lol",
+		};
+		return request(app)
+			.post("/api/articles/invalid_id/comments")
+			.send(newComment)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("not a valid article ID");
+			});
+	});
+
+	it("status: 404, should respond with a 404 message when no article found for valid article_id", () => {
+		const newComment = {
+			username: "bradheath96",
+			body: "this is a test comment lol",
+		};
+		return request(app)
+			.post("/api/articles/8080/comments")
+			.send(newComment)
+			.expect(404)
+			.then(({ body }) => {
+				expect(body.message).toBe("no article found for article_id 8080");
+			});
+	});
+
+	it("status: 400, should respond with a 400 message when missing a username", () => {
+		const newComment = {
+			body: "This is a test comment",
+		};
+		return request(app)
+			.post("/api/articles/1/comments")
+			.send(newComment)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("missing required fields: username and body");
+			});
+	});
+
+	it("status: 400, should respond with a 400 message when missing a body", () => {
+		const newComment = {
+			username: "bradheath96",
+		};
+		return request(app)
+			.post("/api/articles/1/comments")
+			.send(newComment)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("missing required fields: username and body");
+			});
+	});
+
+	it("status: 400, should respond with a 400 message when username is empty", () => {
+		const newComment = {
+			username: "",
+			body: "This is a test comment",
+		};
+		return request(app)
+			.post("/api/articles/1/comments")
+			.send(newComment)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("missing required fields: username and body");
+			});
+	});
+
+	it("status: 400, should respond with a 400 message when body is empty", () => {
+		const newComment = {
+			username: "bradheath96",
+			body: "",
+		};
+		return request(app)
+			.post("/api/articles/1/comments")
+			.send(newComment)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("missing required fields: username and body");
+			});
+	});
+});
+
 describe("GET /api/articles", () => {
 	it("status: 200, should respond with all articles and their properties", () => {
 		return request(app)
