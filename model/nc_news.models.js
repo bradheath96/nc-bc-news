@@ -52,6 +52,21 @@ function insertCommentByArticleId(articleId, username, body) {
 		});
 }
 
+function deleteCommentById(commentId) {
+	return db.query(`SELECT * FROM comments WHERE comment_id = $1`, [commentId])
+		.then((result) => {
+			if (result.rows.length === 0) {
+				return Promise.reject({
+					status: 404,
+					message: `no comment found under comment_id ${commentId}`,
+				});
+			} else {
+				return db.query('DELETE FROM comments WHERE comment_id = $1', [commentId]);
+			}
+		})
+		.then((result) => result);
+}
+
 function updateArticleVotesByArticleId(artilceId, incVotes) {
 	return db
 		.query(`SELECT * FROM articles WHERE article_id = $1`, [artilceId])
@@ -104,4 +119,5 @@ module.exports = {
 	fetchCommentsByArticleId,
 	insertCommentByArticleId,
 	updateArticleVotesByArticleId,
+	deleteCommentById,
 };

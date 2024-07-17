@@ -5,6 +5,7 @@ const {
 	fetchCommentsByArticleId,
 	insertCommentByArticleId,
 	updateArticleVotesByArticleId,
+	deleteCommentById
 } = require("../model/nc_news.models");
 
 const endpoints = require("../endpoints.json");
@@ -28,7 +29,7 @@ function getArticleById(request, response, next) {
 function patchArticleById(request, response, next) {
 	const articleId = Number(request.params.article_id);
 	const { inc_votes } = request.body;
-	
+
 	if (isNaN(articleId)) {
 		return response.status(400).send({ message: "Invalid article ID" });
 	}
@@ -46,9 +47,9 @@ function patchArticleById(request, response, next) {
 
 	return updateArticleVotesByArticleId(articleId, inc_votes)
 		.then((article) => {
-			response.status(200).send(article)
+			response.status(200).send(article);
 		})
-		.catch(next)
+		.catch(next);
 }
 
 function getCommentsByArticleId(request, response, next) {
@@ -91,6 +92,20 @@ function postCommentByArticleId(request, response, next) {
 		});
 }
 
+function deleteComment(request, response, next) {
+	const commentId = Number(request.params.comment_id);
+
+	if (isNaN(commentId)) {
+		return response.status(400).send({ message: "Invalid comment ID" });
+	}
+
+	return deleteCommentById(commentId)
+		.then(() => {
+			response.status(204).send()
+	})
+		.catch(next);
+}
+
 function getArticles(request, response, next) {
 	return fetchArticles()
 		.then((articles) => {
@@ -117,4 +132,5 @@ module.exports = {
 	getCommentsByArticleId,
 	postCommentByArticleId,
 	patchArticleById,
+	deleteComment,
 };
