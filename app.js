@@ -7,7 +7,8 @@ const {
 	getArticles,
 	getCommentsByArticleId,
 	postCommentByArticleId,
-	patchArticleById
+	patchArticleById,
+	deleteComment,
 } = require("./controllers/nc_news.controller");
 
 const {
@@ -27,6 +28,7 @@ app.patch("/api/articles/:article_id", patchArticleById);
 
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 app.post("/api/articles/:articles_id/comments", postCommentByArticleId);
+app.delete("/api/comments/:comment_id", deleteComment);
 
 
 app.all("*", (req, res) => {
