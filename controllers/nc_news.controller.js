@@ -4,7 +4,9 @@ const {
 	fetchArticles,
 	fetchCommentsByArticleId,
 	insertCommentByArticleId,
+	updateArticleVotesByArticleId,
 } = require("../model/nc_news.models");
+
 const endpoints = require("../endpoints.json");
 
 function getAPI(request, response) {
@@ -21,6 +23,32 @@ function getArticleById(request, response, next) {
 			response.status(200).send(article[0]);
 		})
 		.catch(next);
+}
+
+function patchArticleById(request, response, next) {
+	const articleId = Number(request.params.article_id);
+	const { inc_votes } = request.body;
+	
+	if (isNaN(articleId)) {
+		return response.status(400).send({ message: "Invalid article ID" });
+	}
+
+	if (inc_votes === undefined) {
+		return response
+			.status(400)
+			.send({ message: "Missing required field: inc_votes" });
+	}
+	if (typeof inc_votes !== "number") {
+		return response
+			.status(400)
+			.send({ message: "Invalid value for inc_votes" });
+	}
+
+	return updateArticleVotesByArticleId(articleId, inc_votes)
+		.then((article) => {
+			response.status(200).send(article)
+		})
+		.catch(next)
 }
 
 function getCommentsByArticleId(request, response, next) {
@@ -43,7 +71,9 @@ function postCommentByArticleId(request, response, next) {
 		return response.status(400).send({ message: "not a valid article ID" });
 	}
 	if (!username || !body) {
-		return response.status(400).send({ message: "missing required fields: username and body" });
+		return response
+			.status(400)
+			.send({ message: "missing required fields: username and body" });
 	}
 
 	return insertCommentByArticleId(articleId, username, body)
@@ -51,11 +81,12 @@ function postCommentByArticleId(request, response, next) {
 			response.status(201).send(comment);
 		})
 		.catch((err) => {
-			if (err.code === '23503') {
+			if (err.code === "23503") {
 				response
-					.status(404).send({ message: `no article found for article_id ${articleId}`});
+					.status(404)
+					.send({ message: `no article found for article_id ${articleId}` });
 			} else {
-				next(err)
+				next(err);
 			}
 		});
 }
@@ -85,4 +116,5 @@ module.exports = {
 	getArticles,
 	getCommentsByArticleId,
 	postCommentByArticleId,
+	patchArticleById,
 };

@@ -113,7 +113,7 @@ describe("GET /api/articles/:articles_id/comments", () => {
 
 	it("status: 200, should respond with an empty array when the article has no comments", () => {
 		return request(app)
-			.get("/api/articles/2/comments") 
+			.get("/api/articles/2/comments")
 			.expect(200)
 			.then(({ body }) => {
 				expect(body.comments).toEqual([]);
@@ -250,6 +250,109 @@ describe("POST /api/articles/:article_id/comments", () => {
 			.expect(400)
 			.then(({ body }) => {
 				expect(body.message).toBe("missing required fields: username and body");
+			});
+	});
+});
+
+describe("PATCH /api/articles/:article_id", () => {
+	let originalVoteCount;
+
+	beforeAll(() => {
+		return db
+			.query("SELECT votes FROM articles WHERE article_id = 1")
+			.then((result) => {
+				originalVoteCount = result.rows[0].votes;
+			});
+	});
+
+	it("status: 200, should successfully increment the vote count", () => {
+		const input = { inc_votes: 1 };
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(200)
+			.then(({ body }) => {
+				const article = body;
+				expect(article).toHaveProperty("votes", originalVoteCount + 1);
+			});
+	});
+
+	it("status: 200, should successfully decrease the vote count", () => {
+		const input = { inc_votes: -10 };
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(200)
+			.then(({ body }) => {
+				const article = body;
+				expect(article).toHaveProperty("votes", originalVoteCount - 10);
+			});
+	});
+
+	it("status: 200, vote remains unchanged when increment counter is 0", () => {
+		const input = { inc_votes: 0 };
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(200)
+			.then(({ body }) => {
+				const article = body;
+				expect(article).toHaveProperty("votes", originalVoteCount);
+			});
+	});
+
+	it("status: 400, should respond with an error for non-numeric article ID", () => {
+		const input = { inc_votes: 1 };
+		return request(app)
+			.patch("/api/articles/not-a-number")
+			.send(input)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("Invalid article ID");
+			});
+	});
+
+	it("status: 404, should respond with an error for non-existent article ID", () => {
+		const input = { inc_votes: 1 };
+		return request(app)
+			.patch("/api/articles/1010")
+			.send(input)
+			.expect(404)
+			.then(({ body }) => {
+				expect(body.message).toBe("no article found under article_id 1010");
+			});
+	});
+
+	it("status: 400, should respond with an error for missing inc_votes property", () => {
+		const input = {};
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("Missing required field: inc_votes");
+			});
+	});
+
+	it("status: 400, should respond with an error for non-numeric inc_votes value", () => {
+		const input = { inc_votes: "not a number" };
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("Invalid value for inc_votes");
+			});
+	});
+
+	it("status: 400, should respond with an error for inc_votes being undefined", () => {
+		const input = { inc_votes: undefined };
+		return request(app)
+			.patch("/api/articles/1")
+			.send(input)
+			.expect(400)
+			.then(({ body }) => {
+				expect(body.message).toBe("Missing required field: inc_votes");
 			});
 	});
 });
