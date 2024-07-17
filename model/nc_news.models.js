@@ -35,26 +35,6 @@ function fetchCommentsByArticleId(articleId) {
 		})
 		.then((comments) => comments.rows)
 }
-// function fetchCommentsByArticleId(articleId) {
-// 	return db
-// 		.query(
-// 	`SELECT comment_id, votes, created_at, author, body, article_id
-// FROM comments
-// WHERE article_id = $1
-// ORDER BY created_at DESC
-// `,
-// 	[articleId]
-// 		)
-// 		.then((articles) => {
-// 			if (articles.rows.length === 0) {
-// return Promise.reject({
-// 	status: 404,
-// 	message: `no article found under article_id ${articleId}`,
-// });
-// 			}
-// 			return articles.rows;
-// 		});
-// }
 
 function insertCommentByArticleId(articleId, username, body) {
 	return db
@@ -70,6 +50,30 @@ function insertCommentByArticleId(articleId, username, body) {
 		.catch((err) => {
 			throw err;
 		});
+}
+
+function updateArticleVotesByArticleId(artilceId, incVotes) {
+	return db
+		.query(`SELECT * FROM articles WHERE article_id = $1`, [artilceId])
+		.then((result) => {
+			if (result.rows.length === 0) {
+				return Promise.reject({
+					status: 404,
+					message: `no article found under article_id ${artilceId}`,
+				});
+			} else {
+				return db.query(
+					`
+					UPDATE articles
+					SET votes = votes + $1
+					WHERE article_id = $2
+					RETURNING *
+					`,
+					[incVotes, artilceId]
+				); 
+			}
+		})
+		.then(({rows}) => rows[0])
 }
 
 function selectTopics() {
@@ -99,4 +103,5 @@ module.exports = {
 	fetchArticles,
 	fetchCommentsByArticleId,
 	insertCommentByArticleId,
+	updateArticleVotesByArticleId,
 };
