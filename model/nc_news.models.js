@@ -35,6 +35,22 @@ function fetchCommentsByArticleId(articleId) {
 		});
 }
 
+function insertCommentByArticleId(articleId, username, body) {
+	return db
+		.query(
+			`INSERT INTO comments (article_id, author, body)
+            VALUES ($1, $2, $3)
+            RETURNING comment_id, author, body`,
+			[articleId, username, body]
+		)
+		.then(({ rows }) => {
+			return rows[0];
+		})
+		.catch((err) => {
+			throw err;
+		});
+}
+
 function selectTopics() {
 	return db.query(`SELECT slug, description FROM topics`).then((topics) => {
 		return topics.rows;
@@ -61,4 +77,5 @@ module.exports = {
 	selectArticleById,
 	fetchArticles,
 	fetchCommentsByArticleId,
+	insertCommentByArticleId,
 };
