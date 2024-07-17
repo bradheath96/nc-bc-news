@@ -111,6 +111,15 @@ describe("GET /api/articles/:articles_id/comments", () => {
 			});
 	});
 
+	it("status: 200, should respond with an empty array when the article has no comments", () => {
+		return request(app)
+			.get("/api/articles/2/comments") 
+			.expect(200)
+			.then(({ body }) => {
+				expect(body.comments).toEqual([]);
+			});
+	});
+
 	it("status; 200, should respond with all articles in descending order by date", () => {
 		return request(app)
 			.get("/api/articles")

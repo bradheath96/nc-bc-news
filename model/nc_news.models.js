@@ -16,24 +16,45 @@ function selectArticleById(articleId) {
 
 function fetchCommentsByArticleId(articleId) {
 	return db
-		.query(
-			`SELECT comment_id, votes, created_at, author, body, article_id
-        FROM comments
-        WHERE article_id = $1
-        ORDER BY created_at DESC
-        `,
-			[articleId]
-		)
-		.then((articles) => {
-			if (articles.rows.length === 0) {
+		.query(`SELECT * FROM articles WHERE article_id = $1`, [articleId])
+		.then((result) => {
+			if (result.rows.length === 0) {
 				return Promise.reject({
 					status: 404,
 					message: `no article found under article_id ${articleId}`,
 				});
+			} else {
+				return db.query(
+					`SELECT comment_id, votes, created_at, author, body, article_id
+					FROM comments
+					WHERE article_id = $1
+					ORDER BY created_at DESC`,
+					[articleId]
+				);
 			}
-			return articles.rows;
-		});
+		})
+		.then((comments) => comments.rows)
 }
+// function fetchCommentsByArticleId(articleId) {
+// 	return db
+// 		.query(
+// 	`SELECT comment_id, votes, created_at, author, body, article_id
+// FROM comments
+// WHERE article_id = $1
+// ORDER BY created_at DESC
+// `,
+// 	[articleId]
+// 		)
+// 		.then((articles) => {
+// 			if (articles.rows.length === 0) {
+// return Promise.reject({
+// 	status: 404,
+// 	message: `no article found under article_id ${articleId}`,
+// });
+// 			}
+// 			return articles.rows;
+// 		});
+// }
 
 function insertCommentByArticleId(articleId, username, body) {
 	return db
