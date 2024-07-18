@@ -3,6 +3,7 @@ const {
 	selectUsers,
 	selectArticles,
 	selectArticleById,
+	selectArticlesByTopic,
 	selectCommentsByArticleId,
 	insertCommentByArticleId,
 	updateArticleVotesByArticleId,
@@ -12,17 +13,25 @@ const {
 const endpoints = require("../endpoints.json");
 
 function getAPI(request, response, next) {
-	return response.status(200).send({ endpoints: endpoints});
+	return response.status(200).send({ endpoints: endpoints });
 }
 
 function getArticles(request, response, next) {
-	const { sorted_by, order } = request.query
+	const { sorted_by, order, topic } = request.query;
 
-	return selectArticles(sorted_by, order)
-		.then((articles) => {
-			response.status(200).send(articles);
-		})
-		.catch(next);
+	if (topic) {
+		return selectArticlesByTopic(topic)
+			.then((articles) => {
+				response.status(200).send(articles);
+			})
+			.catch(next);
+	} else {
+		return selectArticles(sorted_by, order)
+			.then((articles) => {
+				response.status(200).send(articles);
+			})
+			.catch(next);
+	}
 }
 
 function getTopics(request, response, next) {
@@ -30,15 +39,15 @@ function getTopics(request, response, next) {
 		.then((topics) => {
 			response.status(200).send(topics);
 		})
-		.catch(next)
+		.catch(next);
 }
 
 function getUsers(request, response, next) {
 	return selectUsers()
 		.then((users) => {
-			response.status(200).send(users)
+			response.status(200).send(users);
 		})
-		.catch(next)
+		.catch(next);
 }
 
 function getArticleById(request, response, next) {

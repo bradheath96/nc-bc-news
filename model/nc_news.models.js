@@ -18,8 +18,6 @@ function selectArticles(sorted_by, order) {
 		"comment_count",
 	];
 	const validOrders = ["asc", "desc"];
-
-
 	
 	if (!sorted_by && !order) {
 		return db
@@ -54,14 +52,6 @@ function selectArticles(sorted_by, order) {
 	}
 }
 
-function selectUsers() {
-	return db
-		.query(`SELECT username, name, avatar_url FROM users`)
-		.then((users) => {
-			return users.rows;
-		});
-}
-
 function selectArticleById(articleId) {
 	if (isNaN(articleId)) {
 		return Promise.reject({
@@ -80,6 +70,28 @@ function selectArticleById(articleId) {
 				});
 			}
 			return rows;
+		});
+}
+
+function selectArticlesByTopic(topic) {
+	
+	return db.query(`SELECT * FROM articles WHERE topic = $1`, [topic])
+		.then((articles) => {
+			if (articles.rows.length === 0) {
+				return Promise.reject({
+					status: 404,
+					message: `no article found under ${topic}`,
+				});
+			}
+			return articles.rows
+	})
+}
+
+function selectUsers() {
+	return db
+		.query(`SELECT username, name, avatar_url FROM users`)
+		.then((users) => {
+			return users.rows;
 		});
 }
 
@@ -219,8 +231,9 @@ function updateArticleVotesByArticleId(artilceId, incVotes) {
 module.exports = {
 	selectTopics,
 	selectUsers,
-	selectArticleById,
 	selectArticles,
+	selectArticlesByTopic,
+	selectArticleById,
 	selectCommentsByArticleId,
 	insertCommentByArticleId,
 	updateArticleVotesByArticleId,
