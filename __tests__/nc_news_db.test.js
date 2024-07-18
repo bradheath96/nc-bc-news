@@ -31,7 +31,54 @@ describe("GET /api/", () => {
 			.get("/api")
 			.expect(200)
 			.then(({ body }) => {
-				expect(body).toEqual(endpoints);
+				expect(body.endpoints).toEqual(endpoints);
+			});
+	});
+});
+
+describe("GET /api/articles", () => {
+	it("status: 200, should respond with all articles and their properties", () => {
+		return request(app)
+			.get("/api/articles")
+			.expect(200)
+			.then(({ body }) => {
+				const articlesArray = body.articles;
+				articlesArray.forEach((article) => {
+					expect(article).toMatchObject({
+						article_id: expect.any(Number),
+						title: expect.any(String),
+						topic: expect.any(String),
+						author: expect.any(String),
+						created_at: expect.any(String),
+						votes: expect.any(Number),
+						article_img_url: expect.any(String),
+						comment_count: expect.any(Number),
+					});
+				});
+			});
+	});
+
+	it("status: 200, should not repsond with body property in any of the arrays", () => {
+		return request(app)
+			.get("/api/articles")
+			.expect(200)
+			.then(({ body }) => {
+				const bodyArray = body.articles;
+				bodyArray.forEach((article) => {
+					expect(article).not.toHaveProperty("body");
+				});
+			});
+	});
+
+	it("status; 200, should respond with all articles in descending order by date", () => {
+		return request(app)
+			.get("/api/articles")
+			.expect(200)
+			.then(({ body }) => {
+				const articlesArray = body.articles;
+				expect(articlesArray).toBeSortedBy("created_at", {
+					descending: true,
+				});
 			});
 	});
 });
@@ -42,11 +89,29 @@ describe("GET /api/topics", () => {
 			.get("/api/topics")
 			.expect(200)
 			.then(({ body }) => {
-				const topicsArray = body;
+				const topicsArray = body.topics;
 				topicsArray.forEach((topic) => {
 					expect(topic).toStrictEqual({
 						slug: expect.any(String),
 						description: expect.any(String),
+					});
+				});
+			});
+	});
+});
+
+describe("GET /api/users", () => {
+	it("status: 200, should respond with an array of users", () => {
+		return request(app)
+			.get("/api/users")
+			.expect(200)
+			.then(({ body }) => {
+				const usersArray = body.users;
+				usersArray.forEach((user) => {
+					expect(user).toStrictEqual({
+						username: expect.any(String),
+						name: expect.any(String),
+						avatar_url: expect.any(String),
 					});
 				});
 			});
@@ -92,16 +157,6 @@ describe("GET /api/articles/:articles_id", () => {
 });
 
 describe("PATCH /api/articles/:article_id", () => {
-	let originalVoteCount;
-
-	beforeAll(() => {
-		return db
-			.query("SELECT votes FROM articles WHERE article_id = 1")
-			.then((result) => {
-				originalVoteCount = result.rows[0].votes;
-			});
-	});
-
 	it("status: 200, should successfully increment the vote count", () => {
 		const input = { inc_votes: 1 };
 		return request(app)
@@ -109,8 +164,8 @@ describe("PATCH /api/articles/:article_id", () => {
 			.send(input)
 			.expect(200)
 			.then(({ body }) => {
-				const article = body;
-				expect(article).toHaveProperty("votes", originalVoteCount + 1);
+				const article = body.article;
+				expect(article).toHaveProperty("votes", 101);
 			});
 	});
 
@@ -121,8 +176,8 @@ describe("PATCH /api/articles/:article_id", () => {
 			.send(input)
 			.expect(200)
 			.then(({ body }) => {
-				const article = body;
-				expect(article).toHaveProperty("votes", originalVoteCount - 10);
+				const article = body.article;
+				expect(article).toHaveProperty("votes", 90);
 			});
 	});
 
@@ -133,8 +188,8 @@ describe("PATCH /api/articles/:article_id", () => {
 			.send(input)
 			.expect(200)
 			.then(({ body }) => {
-				const article = body;
-				expect(article).toHaveProperty("votes", originalVoteCount);
+				const article = body.article;
+				expect(article).toHaveProperty("votes", 100);
 			});
 	});
 
@@ -357,78 +412,31 @@ describe("POST /api/articles/:article_id/comments", () => {
 	});
 });
 
-describe("GET /api/articles", () => {
-	it("status: 200, should respond with all articles and their properties", () => {
-		return request(app)
-			.get("/api/articles")
-			.expect(200)
-			.then(({ body }) => {
-				const articlesArray = body.articles;
-				articlesArray.forEach((article) => {
-					expect(article).toMatchObject({
-						article_id: expect.any(Number),
-						title: expect.any(String),
-						topic: expect.any(String),
-						author: expect.any(String),
-						created_at: expect.any(String),
-						votes: expect.any(Number),
-						article_img_url: expect.any(String),
-						comment_count: expect.any(Number),
-					});
-				});
-			});
-	});
-
-	it("status: 200, should not repsond with body property in any of the arrays", () => {
-		return request(app)
-			.get("/api/articles")
-			.expect(200)
-			.then(({ body }) => {
-				const bodyArray = body.articles;
-				bodyArray.forEach((article) => {
-					expect(article).not.toHaveProperty("body");
-				});
-			});
-	});
-
-	it("status; 200, should respond with all articles in descending order by date", () => {
-		return request(app)
-			.get("/api/articles")
-			.expect(200)
-			.then(({ body }) => {
-				const articlesArray = body.articles;
-				expect(articlesArray).toBeSortedBy("created_at", {
-					descending: true,
-				});
-			});
-	});
-});
-
 describe("DELETE /api/comments", () => {
 	it("status: 204, should successfully delete a comment", async () => {
-		await request(app)
-			.delete("/api/comments/1")
-			.expect(204)
+		await request(app).delete("/api/comments/1").expect(204);
 
-		const deletedComment = await db.query(`SELECT * FROM comments WHERE comment_id = 1`)
-		expect(deletedComment.rows.length).toBe(0)
-	})
+		const deletedComment = await db.query(
+			`SELECT * FROM comments WHERE comment_id = 1`
+		);
+		expect(deletedComment.rows.length).toBe(0);
+	});
 
 	it("status: 400, should return an arror for an invalid comment ID", () => {
 		return request(app)
 			.delete("/api/comments/thisisbad")
 			.expect(400)
 			.then(({ body }) => {
-				expect(body.message).toBe("Invalid comment ID")
-			})
-	})
+				expect(body.message).toBe("Invalid comment ID");
+			});
+	});
 
 	it("status: 404, should return an error for a comment ID that doesn't exist", () => {
 		return request(app)
 			.delete("/api/comments/8080")
 			.expect(404)
 			.then(({ body }) => {
-				expect(body.message).toBe("no comment found under comment_id 8080")
-			})
-	})
-})
+				expect(body.message).toBe("no comment found under comment_id 8080");
+			});
+	});
+});
