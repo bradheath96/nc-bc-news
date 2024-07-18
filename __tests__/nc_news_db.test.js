@@ -42,7 +42,8 @@ describe("GET /api/articles", () => {
 			.get("/api/articles")
 			.expect(200)
 			.then(({ body }) => {
-				const articlesArray = body.articles;
+				const articlesArray = body;
+				expect(articlesArray.length).not.toBe(0);
 				articlesArray.forEach((article) => {
 					expect(article).toMatchObject({
 						article_id: expect.any(Number),
@@ -63,8 +64,9 @@ describe("GET /api/articles", () => {
 			.get("/api/articles")
 			.expect(200)
 			.then(({ body }) => {
-				const bodyArray = body.articles;
-				bodyArray.forEach((article) => {
+				const articlesArray = body;
+				expect(articlesArray.length).not.toBe(0);
+				articlesArray.forEach((article) => {
 					expect(article).not.toHaveProperty("body");
 				});
 			});
@@ -75,12 +77,108 @@ describe("GET /api/articles", () => {
 			.get("/api/articles")
 			.expect(200)
 			.then(({ body }) => {
-				const articlesArray = body.articles;
+				const articlesArray = body;
+				expect(articlesArray.length).not.toBe(0);
 				expect(articlesArray).toBeSortedBy("created_at", {
 					descending: true,
 				});
 			});
 	});
+});
+
+describe("GET /api/articles (sorting queries)", () => {
+	it("status: 200, returns articles sorted by created_at in descending order by default", () => {
+		return request(app)
+			.get("/api/articles")
+			.expect(200)
+			.then(({ body }) => {
+				const articlesArray = body;
+				expect(articlesArray.length).not.toBe(0);
+				expect(articlesArray).toBeSortedBy("created_at", { descending: true });
+			});
+	});
+
+	it("status: 200, returns articles sorted by title in ascending order", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=title&order=asc")
+			.expect(200)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles.length).not.toBe(0);
+				expect(articles).toBeSortedBy("title");
+			});
+	});
+
+	it("status: 200, returns articles sorted by author in descending order", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=author&order=desc")
+			.expect(200)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles).toBeSortedBy("author", { descending: true });
+			});
+	});
+
+	it("status: 200, returns articles sorted by votes in ascending order", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=votes&order=asc")
+			.expect(200)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles).toBeSortedBy("votes");
+			});
+	});
+
+	it("status: 200, returns articles sorted by topic in descending order", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=topic&order=desc")
+			.expect(200)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles).toBeSortedBy("topic", { descending: true });
+			});
+	});
+
+	it("status: 400, returns an error when given a invalid sort_by column", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=not_a_column")
+			.expect(400)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles.message).toBe("Invalid query parameter");
+			});
+	});
+
+	it("status: 400,returns an error when given an invalid order value", () => {
+		return request(app)
+			.get("/api/articles?order=bottom")
+			.expect(400)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles.message).toBe("Invalid query parameter");
+			});
+	});
+
+	it("status: 400,returns an error when given a non-string sort_by value", () => {
+		return request(app)
+			.get("/api/articles?sorted_by=8080")
+			.expect(400)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles.message).toBe("Invalid query parameter");
+			});
+	});
+
+	it("status: 400, returns an error when given a non-string order value", () => {
+		return request(app)
+			.get("/api/articles?order=8080")
+			.expect(400)
+			.then(({ body }) => {
+				const articles = body;
+				expect(articles.message).toBe("Invalid query parameter");
+			});
+	});
+
 });
 
 describe("GET /api/topics", () => {
@@ -89,7 +187,8 @@ describe("GET /api/topics", () => {
 			.get("/api/topics")
 			.expect(200)
 			.then(({ body }) => {
-				const topicsArray = body.topics;
+				const topicsArray = body;
+				expect(topicsArray.length).not.toBe(0);
 				topicsArray.forEach((topic) => {
 					expect(topic).toStrictEqual({
 						slug: expect.any(String),
@@ -106,7 +205,8 @@ describe("GET /api/users", () => {
 			.get("/api/users")
 			.expect(200)
 			.then(({ body }) => {
-				const usersArray = body.users;
+				const usersArray = body;
+				expect(usersArray.length).not.toBe(0);
 				usersArray.forEach((user) => {
 					expect(user).toStrictEqual({
 						username: expect.any(String),
@@ -275,18 +375,6 @@ describe("GET /api/articles/:articles_id/comments", () => {
 			.expect(200)
 			.then(({ body }) => {
 				expect(body.comments).toEqual([]);
-			});
-	});
-
-	it("status; 200, should respond with all articles in descending order by date", () => {
-		return request(app)
-			.get("/api/articles")
-			.expect(200)
-			.then(({ body }) => {
-				const articlesArray = body.articles;
-				expect(articlesArray).toBeSortedBy("created_at", {
-					descending: true,
-				});
 			});
 	});
 

@@ -16,9 +16,11 @@ function getAPI(request, response, next) {
 }
 
 function getArticles(request, response, next) {
-	return selectArticles()
+	const { sorted_by, order } = request.query
+
+	return selectArticles(sorted_by, order)
 		.then((articles) => {
-			response.status(200).send({ articles: articles });
+			response.status(200).send(articles);
 		})
 		.catch(next);
 }
@@ -26,7 +28,7 @@ function getArticles(request, response, next) {
 function getTopics(request, response, next) {
 	return selectTopics()
 		.then((topics) => {
-			response.status(200).send({ topics: topics});
+			response.status(200).send(topics);
 		})
 		.catch(next)
 }
@@ -34,7 +36,7 @@ function getTopics(request, response, next) {
 function getUsers(request, response, next) {
 	return selectUsers()
 		.then((users) => {
-			response.status(200).send({users: users})
+			response.status(200).send(users)
 		})
 		.catch(next)
 }
