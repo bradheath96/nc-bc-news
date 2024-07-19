@@ -44,7 +44,7 @@ function getArticleById(request, response, next) {
 
 	return selectArticleById(articleId)
 		.then((article) => {
-			response.status(200).send(article[0]);
+			response.status(200).send(article);
 		})
 		.catch(next);
 }
