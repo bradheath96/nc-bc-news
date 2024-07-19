@@ -126,7 +126,6 @@
 		"description": "deletes the comment with the specified comment_id",
 		"queries": [],
 		"exampleResponse": {
-			"message": "Comment deleted successfully"
 		}
 	}
 }
