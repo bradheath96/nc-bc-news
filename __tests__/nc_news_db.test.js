@@ -259,11 +259,19 @@ describe("GET /api/articles/:articles_id", () => {
 					body: expect.any(String),
 					created_at: expect.any(String),
 					votes: expect.any(Number),
-					article_img_url: expect.any(String),
-					comment_count: expect.any(Number)
+					article_img_url: expect.any(String)
 				});
 			});
 	});
+
+	it("status: 200, should repsond with the articels with the added comment_count propery", () => {
+		return request(app)
+			.get("/api/articles/1")
+			.expect(200)
+			.then(({ body }) => {
+				expect(body).toHaveProperty("comment_count", expect.any(Number))
+			})
+	})
 
 	it("status: 400, should respond with a 400 message when passed an invalid article_id", () => {
 		return request(app)
