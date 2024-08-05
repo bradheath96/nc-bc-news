@@ -7,7 +7,6 @@ const {
 } = require('./utils');
 
 const seed = ({ topicData, userData, articleData, commentData }) => {
-  console.log(process.env.NODE_ENV)
   return db
     .query(`DROP TABLE IF EXISTS comments;`)
     .then(() => {
