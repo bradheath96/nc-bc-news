@@ -18,7 +18,7 @@ function selectArticles(sorted_by, order) {
 		"comment_count",
 	];
 	const validOrders = ["asc", "desc"];
-	
+
 	if (!sorted_by && !order) {
 		return db
 			.query(
@@ -82,8 +82,8 @@ function selectArticleById(articleId) {
 }
 
 function selectArticlesByTopic(topic) {
-	
-	return db.query(`SELECT * FROM articles WHERE topic = $1`, [topic])
+	return db
+		.query(`SELECT * FROM articles WHERE topic = $1`, [topic])
 		.then((articles) => {
 			if (articles.rows.length === 0) {
 				return Promise.reject({
@@ -91,8 +91,8 @@ function selectArticlesByTopic(topic) {
 					message: `no article found under ${topic}`,
 				});
 			}
-			return articles.rows
-	})
+			return articles.rows;
+		});
 }
 
 function selectUsers() {
@@ -158,12 +158,20 @@ function insertCommentByArticleId(articleId, username, body) {
 				return db.query(
 					`INSERT INTO comments (article_id, author, body)
 						VALUES ($1, $2, $3)
-						RETURNING comment_id, author, body`,
+						RETURNING *`,
 					[articleId, username, body]
 				);
 			}
 		})
-		.then(({ rows }) => rows[0]);
+		.then(({ rows }) => rows[0])
+		.catch((err) => {
+			console.error(
+				"Error in insertCommentByArticleId:",
+				err.message,
+				err.stack
+			);
+			throw err; 
+		});
 }
 
 function deleteCommentById(commentId) {

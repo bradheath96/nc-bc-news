@@ -445,6 +445,7 @@ describe("POST /api/articles/:article_id/comments", () => {
 			.expect(201)
 			.then(({ body }) => {
 				const returnedComment = body;
+				console.log(returnedComment)
 				expect(returnedComment).toMatchObject({
 					comment_id: expect.any(Number),
 					author: "rogersop",
